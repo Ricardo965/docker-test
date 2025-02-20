@@ -51,12 +51,14 @@ Para acceder a Docker Hub desde GitHub Actions, creamos **secrets**:
 - `DOCKERHUB_USERNAME`: Mi usuario de Docker Hub.
 - `DOCKERHUB_TOKEN`: Un token generado en Docker Hub.
 
+![Secrets](./img/secrets.png)
+
 ### 🎟️ **Cómo obtener el token en Docker Hub:**
 
 1. Inicio sesión en [Docker Hub](https://hub.docker.com/).
-2. Ve a **Account Settings** → **Security**.
+2. En **Account Settings** → **Security**.
 3. Crea un nuevo **Access Token**.
-4. Copia el token y guárdalo en `DOCKERHUB_TOKEN`.
+4. Copio el token y guárdalo en `DOCKERHUB_TOKEN`.
 
 ---
 
