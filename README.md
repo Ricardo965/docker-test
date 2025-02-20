@@ -1,71 +1,73 @@
-# Getting Started with Create React App
+# 📦 Documentación: CI/CD con GitHub Actions y Docker Hub
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
-hi
+## ✅ **1. Creación del Dockerfile**
 
-## Available Scripts
+Creo un `Dockerfile` para construir la aplicación React usando NGINX como servidor y tambien genero una configuracion para nginx llamado nginx.conf:
 
-In the project directory, you can run:
+```
+FROM node:18-alpine AS build
+WORKDIR /app
+COPY package*.json ./
+RUN npm install
+COPY . .
+RUN npm run build
+FROM nginx:alpine
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+RUN rm -rf /usr/share/nginx/html/*
+COPY --from=build /app/build /usr/share/nginx/html
+EXPOSE 80
+ENTRYPOINT ["nginx", "-g", "daemon off;"]
+```
 
-### `npm start`
+---
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+## 🔄 **2. Configuración del Workflow en GitHub Actions**
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+Creo un workflow (`.github/workflows/build.yml`) que:
 
-### `npm test`
+1. **Hace checkout del repositorio.**
+2. **Configura Docker Buildx.**
+3. **Obtiene la versión del `package.json`, el hash del commit y un timestamp.**
+4. **Construye la imagen Docker.**
+5. **Etiqueta la imagen con el formato:**
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+```
+<versión-del-package.json>-<hash-del-commit>-<timestamp>
 
-### `npm run build`
+```
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+1. **Hace push a Docker Hub.**
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+---
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+## 🔐 **3. Configuración de Secretos en GitHub**
 
-### `npm run eject`
+Para acceder a Docker Hub desde GitHub Actions, creamos **secrets**:
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+1. En mi repositorio → `Settings` → `Secrets and variables` → `Actions`.
+2. Haz clic en **`New repository secret`**.
+3. Crea los siguientes secretos:
+- `DOCKERHUB_USERNAME`: Mi usuario de Docker Hub.
+- `DOCKERHUB_TOKEN`: Un token generado en Docker Hub.
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+### 🎟️ **Cómo obtener el token en Docker Hub:**
 
-## Learn More
+1. Inicio sesión en [Docker Hub](https://hub.docker.com/).
+2. Ve a **Account Settings** → **Security**.
+3. Crea un nuevo **Access Token**.
+4. Copia el token y guárdalo en `DOCKERHUB_TOKEN`.
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+---
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+## 🚀 **4. Ejecución del Workflow**
 
-### Code Splitting
+Cada vez que hago un **push en la rama `main`**, GitHub Actions:
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+1. Construye la imagen Docker.
+2. La etiqueta siguiendo el formato especificado.
+3. La sube a Docker Hub.
 
-### Analyzing the Bundle Size
+# Resultado
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
